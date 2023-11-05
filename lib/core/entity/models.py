@@ -66,7 +66,7 @@ class KnowledgeSource(BaseSoftDeleteKernelPlancksterModel):
     Represents a knowledge source, a collection of sources defined by the user
 
     @param id: the id of the knowledge source
-    @param source: the source of the source_data (e.g., Google, YouTube, UserUpload, etc.)
+    @param source: the source of the source_data (e.g., Twitter Data Augmentation + Channel, Telegram DA + Channel, Images DA + Sentinel/Camera feed, ...)
     @param content_metadata: depending on the source, can be the query made to the source or the list of user uploads; meant to be a json formatted string, including e.g. an URL
     """
 
@@ -88,15 +88,17 @@ class SourceData(BaseSoftDeleteKernelPlancksterModel):
 
     @param id: the id of the source_data
     @param name: the name of the source_data
-    @param type: the type of the source_data (e.g., pdf, txt, etc.)
+    @param type: the type of the source_data (e.g., pdf, txt, etc.)  # TODO: decide if this gets replaced by the 'metadata' attribute below
+    @param data: JSON ('location info'; text tied to image coming from social media; )   # TODO: decide 
     @param lfn: the logical file name of the source_data
     @param protocol: the protocol used to store the source_data
     """
 
     id: int
     name: str
-    type: str
-    lfn: str
+    #type: str  # TODO: confirm that this gets replaced by 'metadata' below
+    #lfn: str  # TODO: confirm if this is not needed
+    data: str   # TODO: decide
     protocol: ProtocolEnum
 
     def __str__(self) -> str:
@@ -150,12 +152,14 @@ class VectorStore(BaseSoftDeleteKernelPlancksterModel):
 
     @param id: the id of the vector store
     @param name: the name of the vector store
+    @param algorithm: algorithm used to structure the vector store for the research context (cosine, euclidean, etc.) # TODO: confirm
     @param lfn: the logical file name of the vector store
     @param protocol: the protocol used to store the vector store
     """
 
     id: int
     name: str
+    algorithm: str  # TODO: confirm
     lfn: str
     protocol: ProtocolEnum
 
