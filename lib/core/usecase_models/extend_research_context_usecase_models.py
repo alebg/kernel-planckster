@@ -1,6 +1,6 @@
 from typing import List
 from pydantic import Field
-from lib.core.entity.models import LLM, ResearchContext
+from lib.core.entity.models import Agent, ResearchContext
 from lib.core.sdk.usecase_models import BaseErrorResponse, BaseRequest, BaseResponse
 
 
@@ -20,7 +20,7 @@ class ExtendResearchContextRequest(BaseRequest):
     )
     new_research_context_description: str = Field(description="Description of the research context to be created.")
     client_sub: str = Field(description="SUB of the client for which the research context is to be created.")
-    llm_name: str = Field(description="Name of the LLM for which the research context is to be created.")
+    agent_id: int = Field(description="ID of the agent for which the research context is to be created.")
     new_source_data_ids: List[int] = Field(
         description="List of additional source data ids beyond those in the original research context."
     )
@@ -36,7 +36,7 @@ class ExtendResearchContextResponse(BaseResponse):
     """
 
     research_context: ResearchContext = Field(description="The newly created research context.")
-    llm: LLM = Field(description="The LLM of the newly created research context.")
+    agent: Agent = Field(description="The agent of the newly created research context.")
 
 
 class ExtendResearchContextError(BaseErrorResponse):

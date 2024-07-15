@@ -217,7 +217,7 @@ class Embedding(BaseSoftDeleteKernelPlancksterModel):
     type: str
     relative_path: str
     protocol: ProtocolEnum
-    status: SourceDataStatusEnum   # Q: do we want this here? if so, change its name
+    status: SourceDataStatusEnum  # Q: do we want this here? if so, change its name
 
     @classmethod
     def from_json(cls, json_str: str) -> "Embedding":

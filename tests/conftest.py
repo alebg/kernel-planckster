@@ -500,7 +500,7 @@ def llm() -> SQLALLM:
 
 
 @pytest.fixture(scope="function")
-def fake_llm() -> SQLALLM:
+def fake_agent() -> SQLALLM:
     return llm()
 
 

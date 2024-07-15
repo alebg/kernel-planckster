@@ -19,7 +19,7 @@ class ExtendResearchContextUseCase(ExtendResearchContextInputPort):
             new_research_context_title = request.new_research_context_title
             new_research_context_description = request.new_research_context_description
             client_sub = request.client_sub
-            llm_name = request.llm_name
+            agent_id = request.agent_id
             new_source_data_ids_req = request.new_source_data_ids
             existing_research_context_id = request.existing_research_context_id
 
@@ -130,12 +130,12 @@ class ExtendResearchContextUseCase(ExtendResearchContextInputPort):
                 research_context_title=new_research_context_title,
                 research_context_description=new_research_context_description,
                 client_sub=client_sub,
-                llm_name=llm_name,
+                agent_id=agent_id,
                 source_data_ids=final_source_data_list,
             )
 
             if dto.status:
-                return ExtendResearchContextResponse(research_context=dto.research_context, llm=dto.llm)
+                return ExtendResearchContextResponse(research_context=dto.research_context, agent=dto.agent)
 
             return ExtendResearchContextError(
                 errorCode=dto.errorCode,

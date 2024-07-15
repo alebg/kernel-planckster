@@ -2,7 +2,6 @@ import random
 from typing import List
 
 from faker import Faker
-from lib.core.entity.models import LLM
 from lib.core.usecase.list_source_data_for_research_context_usecase import ListSourceDataForResearchContextUseCase
 from lib.core.usecase_models.list_source_data_for_research_context_usecase_models import (
     ListSourceDataForResearchContextRequest,

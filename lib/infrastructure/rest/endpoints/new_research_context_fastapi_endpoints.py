@@ -45,13 +45,13 @@ class NewResearchContextFastAPIFeature(
             research_context_description: str,
             source_data_ids: list[int],
             client_sub: str | None = None,
-            llm_name: str | None = None,
+            agent_id: int | None = None,
         ) -> NewResearchContextViewModel | None:
             controller_parameters = NewResearchContextControllerParameters(
                 research_context_title=research_context_title,
                 research_context_description=research_context_description,
                 client_sub=client_sub,
-                llm_name=llm_name,
+                agent_id=agent_id,
                 source_data_ids=source_data_ids,
             )
 

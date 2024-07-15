@@ -15,7 +15,7 @@ class NewResearchContextUseCase(NewResearchContextInputPort):
             research_context_title = request.research_context_title
             research_context_description = request.research_context_description
             client_sub = request.client_sub
-            llm_name = request.llm_name
+            agent_id = request.agent_id
             source_data_ids_req = request.source_data_ids
 
             # 1. Get the client, by SUB, to then check if he has access to the source data
@@ -89,12 +89,12 @@ class NewResearchContextUseCase(NewResearchContextInputPort):
                 research_context_title=research_context_title,
                 research_context_description=research_context_description,
                 client_sub=client_sub,
-                llm_name=llm_name,
+                agent_id=agent_id,
                 source_data_ids=source_data_ids_req,
             )
 
             if dto.status:
-                return NewResearchContextResponse(research_context=dto.research_context, llm=dto.llm)
+                return NewResearchContextResponse(research_context=dto.research_context, agent=dto.agent)
 
             return NewResearchContextError(
                 errorCode=dto.errorCode,

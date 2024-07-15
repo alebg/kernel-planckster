@@ -24,9 +24,9 @@ class NewResearchContextControllerParameters(BaseControllerParameters):
         title="Client SUB",
         description="SUB of the client for which the research context is to be created.",
     )
-    llm_name: str = Field(
-        title="LLM Name",
-        description="Name of the LLM for which the research context is to be created.",
+    agent_id: int = Field(
+        title="Agent ID",
+        description="ID of the agent for which the research context is to be created.",
     )
     source_data_ids: list[int] = Field(
         title="Source Data IDs",
@@ -58,6 +58,6 @@ class NewResearchContextController(
                 research_context_title=parameters.research_context_title,
                 research_context_description=parameters.research_context_description,
                 client_sub=parameters.client_sub,
-                llm_name=parameters.llm_name,
+                agent_id=parameters.agent_id,
                 source_data_ids=parameters.source_data_ids,
             )

@@ -7,19 +7,19 @@ from lib.core.dto.client_repository_dto import (
     NewResearchContextDTO,
     NewSourceDataDTO,
 )
-from lib.core.entity.models import LLM, ProtocolEnum, ResearchContext, SourceData, Client, SourceDataStatusEnum
+from lib.core.entity.models import Agent, ProtocolEnum, ResearchContext, SourceData, Client, SourceDataStatusEnum
 from lib.core.ports.secondary.client_repository import ClientRepositoryOutputPort
 from lib.infrastructure.repository.sqla.database import TDatabaseFactory
 from sqlalchemy.orm import Session
 
 from lib.infrastructure.repository.sqla.models import (
-    SQLALLM,
+    SQLAAgent,
     SQLAResearchContext,
     SQLASourceData,
     SQLAClient,
 )
 from lib.infrastructure.repository.sqla.utils import (
-    convert_sqla_LLM_to_core_LLM,
+    convert_sqla_agent_to_core_agent,
     convert_sqla_research_context_to_core_research_context,
     convert_sqla_client_to_core_client,
     convert_core_source_data_to_sqla_source_data,
@@ -138,7 +138,7 @@ class SQLAClientRepository(ClientRepositoryOutputPort):
         research_context_title: str,
         research_context_description: str,
         client_sub: str,
-        llm_name: str,
+        agent_id: int,
         source_data_ids: List[int],
     ) -> NewResearchContextDTO:
         """
@@ -150,8 +150,8 @@ class SQLAClientRepository(ClientRepositoryOutputPort):
         @type research_context_description: str
         @param client_sub: The SUB of the user to create the research context for.
         @type client_sub: str
-        @param llm_name: The name of the LLM to create the research context for.
-        @type llm_name: str
+        @param agent_id: The ID of the agent to create the research context for.
+        @type agent_id: int
         @param source_data_ids: The IDs of the source data to create the research context for.
         @type source_data_ids: List[int]
         @return: A DTO containing the result of the operation.
@@ -196,7 +196,7 @@ class SQLAClientRepository(ClientRepositoryOutputPort):
             self.logger.error(f"{errorDTO}")
             return errorDTO
 
-        if llm_name is None:
+        if agent_id is None:
             self.logger.error("LLM name cannot be None")
             errorDTO = NewResearchContextDTO(
                 status=False,
@@ -209,7 +209,7 @@ class SQLAClientRepository(ClientRepositoryOutputPort):
             return errorDTO
 
         try:
-            queried_sqla_llm: SQLALLM | None = self.session.query(SQLALLM).filter_by(llm_name=llm_name).first()
+            queried_sqla_agent: SQLAAgent | None = self.session.get(SQLAAgent, agent_id)
 
         except Exception as e:
             self.logger.error(f"Error while querying for LLM: {e}")
@@ -223,12 +223,12 @@ class SQLAClientRepository(ClientRepositoryOutputPort):
             self.logger.error(f"{errorDTO}")
             return errorDTO
 
-        if queried_sqla_llm is None:
-            self.logger.error(f"LLM with name {llm_name} not found in the database")
+        if queried_sqla_agent is None:
+            self.logger.error(f"Agent with ID {agent_id} not found in the database")
             errorDTO = NewResearchContextDTO(
                 status=False,
                 errorCode=-1,
-                errorMessage=f"LLM with name {llm_name} not found in the database",
+                errorMessage=f"Agent with ID {agent_id} not found in the database",
                 errorName="LLM not found",
                 errorType="LLMNotFound",
             )
@@ -328,7 +328,7 @@ class SQLAClientRepository(ClientRepositoryOutputPort):
 
         # 3. Create the new research context
 
-        llm_id = queried_sqla_llm.id
+        llm_id = queried_sqla_agent.id
         client_id = queried_sqla_client.id
 
         sqla_new_research_context: SQLAResearchContext = SQLAResearchContext(
@@ -359,12 +359,12 @@ class SQLAClientRepository(ClientRepositoryOutputPort):
             sqla_new_research_context
         )
 
-        core_llm: LLM = convert_sqla_LLM_to_core_LLM(queried_sqla_llm)
+        core_agent: Agent = convert_sqla_agent_to_core_agent(queried_sqla_agent)
 
         return NewResearchContextDTO(
             status=True,
             research_context=core_new_research_context,
-            llm=core_llm,
+            llm=core_agent,
         )
 
     def list_research_contexts(self, client_id: int) -> ListResearchContextsDTO:

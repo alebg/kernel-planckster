@@ -20,13 +20,13 @@ class ExtendResearchContextPresenter(ExtendResearchContextOutputPort):
             research_context_id=-1,
             research_context_title="",
             research_context_description="",
-            llm_name="",
+            agent_name="",
         )
 
     def convert_response_to_view_model(self, response: ExtendResearchContextResponse) -> ExtendResearchContextViewModel:
         research_context_id = response.research_context.id
         research_context_title = response.research_context.title
-        llm_name = response.llm.llm_name
+        agent_name = response.agent.name
 
         return ExtendResearchContextViewModel(
             status=True,
@@ -34,5 +34,5 @@ class ExtendResearchContextPresenter(ExtendResearchContextOutputPort):
             research_context_id=research_context_id,
             research_context_title=research_context_title,
             research_context_description=response.research_context.description,
-            llm_name=llm_name,
+            agent_name=agent_name,
         )

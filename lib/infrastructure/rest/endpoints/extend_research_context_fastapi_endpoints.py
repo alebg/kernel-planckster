@@ -46,14 +46,14 @@ class ExtendResearchContextFastAPIFeature(
             new_source_data_ids: list[int],
             existing_research_context_id: int,
             client_sub: str,
-            llm_name: str,
+            agent_id: int,
         ) -> NewResearchContextViewModel | None:
             controller_parameters = ExtendResearchContextControllerParameters(
                 new_research_context_title=new_research_context_title,
                 new_research_context_description=new_research_context_description,
                 existing_research_context_id=existing_research_context_id,
                 client_sub=client_sub,
-                llm_name=llm_name,
+                agent_id=agent_id,
                 new_source_data_ids=new_source_data_ids,
             )
 

@@ -1,5 +1,5 @@
 from typing import List
-from lib.core.entity.models import LLM, ResearchContext, Client, SourceData
+from lib.core.entity.models import Agent, ResearchContext, Client, SourceData
 from lib.core.sdk.dto import BaseDTO
 
 
@@ -22,7 +22,7 @@ class NewResearchContextDTO(BaseDTO[ResearchContext]):
     """
 
     research_context: ResearchContext | None = None
-    llm: LLM | None = None
+    agent: Agent | None = None
 
 
 class ListResearchContextsDTO(BaseDTO[ResearchContext]):

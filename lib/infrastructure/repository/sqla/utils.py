@@ -1,5 +1,5 @@
 from lib.core.entity.models import (
-    LLM,
+    Agent,
     Conversation,
     UserMessage,
     AgentMessage,
@@ -8,7 +8,7 @@ from lib.core.entity.models import (
     Client,
 )
 from lib.infrastructure.repository.sqla.models import (
-    SQLALLM,
+    SQLAAgent,
     SQLAConversation,
     SQLAUserMessage,
     SQLAAgentMessage,
@@ -56,6 +56,9 @@ def convert_sqla_research_context_to_core_research_context(
         id=sqla_research_context.id,
         title=sqla_research_context.title,
         description=sqla_research_context.description,
+        version_hash=sqla_research_context.version_hash,
+        versioning_provider=sqla_research_context.versioning_provider,
+        report=sqla_research_context.report,
     )
 
 
@@ -172,7 +175,7 @@ def convert_core_source_data_to_sqla_source_data(core_source_data: SourceData) -
     )
 
 
-def convert_sqla_LLM_to_core_LLM(sqla_llm: SQLALLM) -> LLM:
+def convert_sqla_agent_to_core_agent(sqla_agent: SQLAAgent) -> Agent:
     """
     Converts a SQLALLM to a (core) LLM
 
@@ -181,11 +184,14 @@ def convert_sqla_LLM_to_core_LLM(sqla_llm: SQLALLM) -> LLM:
     @return: The converted LLM
     @rtype: LLM
     """
-    return LLM(
-        created_at=sqla_llm.created_at,
-        updated_at=sqla_llm.updated_at,
-        deleted=sqla_llm.deleted,
-        deleted_at=sqla_llm.deleted_at,
-        id=sqla_llm.id,
-        llm_name=sqla_llm.llm_name,
+    return Agent(
+        created_at=sqla_agent.created_at,
+        updated_at=sqla_agent.updated_at,
+        deleted=sqla_agent.deleted,
+        deleted_at=sqla_agent.deleted_at,
+        id=sqla_agent.id,
+        name=sqla_agent.name,
+        llm_model=sqla_agent.llm_model,
+        instructions=sqla_agent.instructions,
+        capabilities=sqla_agent.capabilities,
     )

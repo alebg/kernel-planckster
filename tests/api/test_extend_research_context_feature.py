@@ -16,7 +16,7 @@ from lib.infrastructure.controller.extend_research_context_controller import (
 from lib.core.view_model.extend_research_context_view_model import ExtendResearchContextViewModel
 from lib.infrastructure.repository.sqla.database import TDatabaseFactory
 from lib.infrastructure.repository.sqla.models import (
-    SQLALLM,
+    SQLAAgent,
     SQLAResearchContext,
     SQLASourceData,
     SQLAClient,
@@ -40,7 +40,7 @@ def test_extend_research_context_usecase(
     assert usecase is not None
 
     client_with_context = fake_client_with_research_context_and_sources
-    llm_name = fake.name()
+    agent_name = fake.name()
 
     existing_research_context = random.choice(client_with_context.research_contexts)
     # Populate source data into the existing research context
@@ -60,8 +60,8 @@ def test_extend_research_context_usecase(
     new_source_data_ids = [sd.id for sd in new_source_data_list]
     assert new_source_data_ids != []
 
-    llm = SQLALLM(
-        llm_name=llm_name,
+    agent = SQLAAgent(  # TODO: clean here after SQLAAgent is implemented
+        agent_name=agent_name,
         research_contexts=client_with_context.research_contexts,
     )
 
@@ -95,7 +95,7 @@ def test_extend_research_context_usecase(
             new_research_context_title=new_research_context_title,
             new_research_context_description=new_research_context_description,
             client_sub=queried_client.sub,
-            llm_name=llm_name,
+            agent_id=agent_id,
             new_source_data_ids=new_source_data_ids,
             existing_research_context_id=queried_existing_research_context.id,
         )
@@ -138,7 +138,7 @@ def test_extend_research_context_usecase(
             new_research_context_title=new_research_context_title,
             new_research_context_description=new_research_context_description,
             client_sub=queried_client.sub,
-            llm_name=llm_name,
+            agent_id=agent_id,
             new_source_data_ids=queried_existing_source_data_ids,
             existing_research_context_id=queried_existing_research_context.id,
         )
@@ -183,7 +183,7 @@ def test_extend_research_context_controller(
     new_source_data_ids = [sd.id for sd in new_source_data_list]
     assert new_source_data_ids != []
 
-    llm = SQLALLM(
+    llm = SQLALLM(  # TODO: clean here after SQLAAgent is implemented
         llm_name=llm_name,
         research_contexts=client_with_context.research_contexts,
     )
@@ -218,7 +218,7 @@ def test_extend_research_context_controller(
             new_research_context_title=new_research_context_title,
             new_research_context_description=new_research_context_description,
             client_sub=queried_client.sub,
-            llm_name=llm_name,
+            agent_id=agent_id,
             new_source_data_ids=new_source_data_ids,
             existing_research_context_id=queried_existing_research_context.id,
         )
@@ -261,7 +261,7 @@ def test_extend_research_context_controller(
             new_research_context_title=new_research_context_title,
             new_research_context_description=new_research_context_description,
             client_sub=queried_client.sub,
-            llm_name=llm_name,
+            agent_id=agent_id,
             new_source_data_ids=queried_existing_source_data_ids,
             existing_research_context_id=queried_existing_research_context.id,
         )

@@ -57,7 +57,7 @@ class ClientRepositoryOutputPort(ABC):
         research_context_title: str,
         research_context_description: str,
         client_sub: str,
-        llm_name: str,
+        agent_id: int,
         source_data_ids: List[int],
     ) -> NewResearchContextDTO:
         """
@@ -69,8 +69,8 @@ class ClientRepositoryOutputPort(ABC):
         @type research_context_description: str
         @param client_sub: The SUB of the client to create the research context for.
         @type client_sub: str
-        @param llm_name: The name of the LLM to create the research context for.
-        @type llm_name: str
+        @param agent_id: The ID of the agent to create the research context for.
+        @type agent_id: int
         @param source_data_ids: The IDs of the source data to create the research context for.
         @type source_data_ids: List[int]
         @return: A DTO containing the result of the operation.

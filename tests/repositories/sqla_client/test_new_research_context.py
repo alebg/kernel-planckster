@@ -5,53 +5,54 @@ from faker import Faker
 from lib.core.dto.client_repository_dto import NewResearchContextDTO
 from lib.infrastructure.config.containers import ApplicationContainer
 from lib.infrastructure.repository.sqla.database import TDatabaseFactory
-from lib.infrastructure.repository.sqla.models import SQLALLM, SQLAResearchContext, SQLAClient
+from lib.infrastructure.repository.sqla.models import SQLAAgent, SQLAResearchContext, SQLAClient
 
 
 def test_create_new_research_context(
     app_initialization_container: ApplicationContainer,
     db_session: TDatabaseFactory,
     fake: Faker,
-    fake_llm: SQLALLM,
+    fake_agent: SQLAAgent,
     fake_client_with_source_data_list: List[SQLAClient],
 ) -> None:
     sqla_client_repository = app_initialization_container.sqla_client_repository()
 
-    llm = fake_llm
+    agent = fake_agent
     client_list = fake_client_with_source_data_list
     client = random.choice(client_list)
 
     client_sub = client.sub
-    llm_name = llm.llm_name
+    agent_name = agent.name
 
     research_context_title = fake.name()
     research_context_description = fake.text()
 
     with db_session() as session:
-        session.add(llm)
+        session.add(agent)
         for client in client_list:
             session.add(client)
         session.commit()
 
         source_data_list = client.source_data
         source_data_id_list = [source_data.id for source_data in source_data_list]
+        agent_id = agent.id
 
     with db_session() as session:
         new_research_context_DTO: NewResearchContextDTO = sqla_client_repository.new_research_context(
             research_context_title=research_context_title,
             research_context_description=research_context_description,
             client_sub=client_sub,
-            llm_name=llm_name,
+            agent_id=agent_id,
             source_data_ids=source_data_id_list,
         )
 
         assert new_research_context_DTO.status == True
 
         assert new_research_context_DTO.research_context is not None
-        assert new_research_context_DTO.llm is not None
+        assert new_research_context_DTO.agent is not None
 
         new_research_context_id = new_research_context_DTO.research_context.id
-        new_research_context_llm = new_research_context_DTO.llm
+        new_research_context_agent = new_research_context_DTO.agent
 
         queried_new_research_context = session.get(SQLAResearchContext, new_research_context_id)
 
@@ -66,9 +67,9 @@ def test_create_new_research_context(
             == new_research_context_DTO.research_context.description
             == research_context_description
         )
-        assert queried_new_research_context.llm_id == new_research_context_llm.id
+        assert queried_new_research_context.agent_id == new_research_context_agent.id
 
-        assert new_research_context_llm.llm_name == llm_name
+        assert new_research_context_agent.name == agent_name
 
         queried_new_research_context_source_data = queried_new_research_context.source_data
 
@@ -86,14 +87,14 @@ def test_error_new_research_context_research_context_title_is_None(
     research_context_title = None
     research_context_description = "Test description"
     client_sub = "test"
-    llm_name = "test"
+    agent_id = 1
     source_data_ids = [1, 2, 3]
 
     new_research_context_DTO: NewResearchContextDTO = sqla_client_repository.new_research_context(
         research_context_title=research_context_title,  # type: ignore
         research_context_description=research_context_description,
         client_sub=client_sub,
-        llm_name=llm_name,
+        agent_id=agent_id,
         source_data_ids=source_data_ids,
     )
 
@@ -111,14 +112,14 @@ def test_error_new_research_context_description_is_None(
     research_context_title = "test"
     research_context_description = None
     client_sub = "test"
-    llm_name = "test"
+    agent_id = 1
     source_data_ids = [1, 2, 3]
 
     new_research_context_DTO: NewResearchContextDTO = sqla_client_repository.new_research_context(
         research_context_title=research_context_title,
         research_context_description=research_context_description,  # type: ignore
         client_sub=client_sub,
-        llm_name=llm_name,
+        agent_id=agent_id,
         source_data_ids=source_data_ids,
     )
 
@@ -136,14 +137,14 @@ def test_error_new_research_context_client_sub_is_None(
     research_context_title = "test"
     research_context_description = "Test description"
     client_sub = None
-    llm_name = "test"
+    agent_id = 1
     source_data_ids = [1, 2, 3]
 
     new_research_context_DTO: NewResearchContextDTO = sqla_client_repository.new_research_context(
         research_context_title=research_context_title,
         research_context_description=research_context_description,
         client_sub=client_sub,  # type: ignore
-        llm_name=llm_name,
+        agent_id=agent_id,
         source_data_ids=source_data_ids,
     )
 
@@ -153,7 +154,7 @@ def test_error_new_research_context_client_sub_is_None(
     assert new_research_context_DTO.errorType == "ClientSubNotProvided"
 
 
-def test_error_new_research_context_llm_name_is_None(
+def test_error_new_research_context_agent_name_is_None(
     app_initialization_container: ApplicationContainer, db_session: TDatabaseFactory
 ) -> None:
     sqla_client_repository = app_initialization_container.sqla_client_repository()
@@ -161,32 +162,32 @@ def test_error_new_research_context_llm_name_is_None(
     research_context_title = "test"
     research_context_description = "Test description"
     client_sub = "test"
-    llm_name = None
+    agent_id = None
     source_data_ids = [1, 2, 3]
 
     new_research_context_DTO: NewResearchContextDTO = sqla_client_repository.new_research_context(
         research_context_title=research_context_title,
         research_context_description=research_context_description,
         client_sub=client_sub,
-        llm_name=llm_name,  # type: ignore
+        agent_id=agent_id,  # type: ignore
         source_data_ids=source_data_ids,
     )
 
     assert new_research_context_DTO.status == False
     assert new_research_context_DTO.errorCode == -1
-    assert new_research_context_DTO.errorName == "LLM name not provided"
-    assert new_research_context_DTO.errorType == "LLMNameNotProvided"
+    assert new_research_context_DTO.errorName == "Agent ID not provided"
+    assert new_research_context_DTO.errorType == "AgentIDNotProvided"
 
 
 def test_error_new_research_context_client_sub_not_found(
     app_initialization_container: ApplicationContainer,
     db_session: TDatabaseFactory,
-    fake_llm: SQLALLM,
+    fake_agent: SQLAAgent,
 ) -> None:
     sqla_client_repository = app_initialization_container.sqla_client_repository()
 
-    llm = fake_llm
-    llm_name = llm.llm_name
+    agent = fake_agent
+    agent_name = agent.name
 
     research_context_title = "test"
     research_context_description = "Test description"
@@ -194,14 +195,15 @@ def test_error_new_research_context_client_sub_not_found(
     source_data_ids = [1, 2, 3]
 
     with db_session() as session:
-        session.add(llm)
+        session.add(agent)
         session.commit()
 
+        agent_id = agent.id
         new_research_context_DTO: NewResearchContextDTO = sqla_client_repository.new_research_context(
             research_context_title=research_context_title,
             research_context_description=research_context_description,
             client_sub=client_sub,
-            llm_name=llm_name,
+            agent_id=agent_id,
             source_data_ids=source_data_ids,
         )
 
@@ -211,7 +213,7 @@ def test_error_new_research_context_client_sub_not_found(
         assert new_research_context_DTO.errorType == "ClientNotFound"
 
 
-def test_error_new_research_context_llm_name_not_found(
+def test_error_new_research_context_agent_id_not_found(
     app_initialization_container: ApplicationContainer,
     db_session: TDatabaseFactory,
     fake_client: SQLAClient,
@@ -221,9 +223,10 @@ def test_error_new_research_context_llm_name_not_found(
     client = fake_client
     client_sub = client.sub
 
+    irrealistic_agent_id = 9999999999999
+
     research_context_title = "test"
     research_context_description = "Test description"
-    llm_name = f"test-{uuid.uuid4()}"
     source_data_ids = [1, 2, 3]
 
     with db_session() as session:
@@ -234,28 +237,28 @@ def test_error_new_research_context_llm_name_not_found(
             research_context_title=research_context_title,
             research_context_description=research_context_description,
             client_sub=client_sub,
-            llm_name=llm_name,
+            agent_id=irrealistic_agent_id,
             source_data_ids=source_data_ids,
         )
 
         assert new_research_context_DTO.status == False
         assert new_research_context_DTO.errorCode == -1
-        assert new_research_context_DTO.errorName == "LLM not found"
-        assert new_research_context_DTO.errorType == "LLMNotFound"
+        assert new_research_context_DTO.errorName == "Agent not found"
+        assert new_research_context_DTO.errorType == "AgentNotFound"
 
 
 def test_error_new_research_context_source_data_ids_not_found(
     app_initialization_container: ApplicationContainer,
     db_session: TDatabaseFactory,
     fake_client: SQLAClient,
-    fake_llm: SQLALLM,
+    fake_agent: SQLAAgent,
 ) -> None:
     sqla_client_repository = app_initialization_container.sqla_client_repository()
 
     client = fake_client
-    llm = fake_llm
+    agent = fake_agent
     client_sub = client.sub
-    llm_name = llm.llm_name
+    agent_name = agent.name
 
     research_context_title = "test"
     research_context_description = "Test description"
@@ -263,14 +266,16 @@ def test_error_new_research_context_source_data_ids_not_found(
 
     with db_session() as session:
         session.add(client)
-        session.add(llm)
+        session.add(agent)
         session.commit()
+
+        agent_id = agent.id
 
         new_research_context_DTO: NewResearchContextDTO = sqla_client_repository.new_research_context(
             research_context_title=research_context_title,
             research_context_description=research_context_description,
             client_sub=client_sub,
-            llm_name=llm_name,
+            agent_id=agent_id,
             source_data_ids=source_data_ids,
         )
 
