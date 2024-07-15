@@ -196,28 +196,139 @@ class SourceData(BaseSoftDeleteKernelPlancksterModel):
         return values
 
 
-class EmbeddingModel(BaseSoftDeleteKernelPlancksterModel):
+class Embedding(BaseSoftDeleteKernelPlancksterModel):
     """
-    An embedding model is a model that can be used to embed a vector storde associated with a research context (including its source data), into a vector space
+    An embedding is obtained by processing a list of source_data using an embedding algorithm. Depending on the algorithm, the embedding will be compatible with a list of LLM models.
 
     @param id: the id of the embedding model
     @param name: the name of the embedding model
+    @param embedding_algorithm: the algorithm used to generate the embedding
+    @param compatible_llms: the list of LLM models that are compatible with the embedding
+    @param type: the type of the embedding (e.g., txt, pdf, csv, etc.); inferred from the extension of the relative_path
+    @param relative_path: the relative path of the embedding
+    @param protocol: the protocol used to store the embedding
+    @param status: the status of the embedding relative to where it is stored
     """
 
     id: int
     name: str
+    embedding_algorithm: str
+    compatible_llm_models: list[str]
+    type: str
+    relative_path: str
+    protocol: ProtocolEnum
+    status: SourceDataStatusEnum   # Q: do we want this here? if so, change its name
+
+    @classmethod
+    def from_json(cls, json_str: str) -> "Embedding":
+        """
+        Loads the model from a json formatted string. Wrapper around pydantic's model_validate_json method: in case they decide to deprecate it, we only refactor here.
+        """
+        return cls.model_validate_json(json_data=json_str)
+
+    @classmethod
+    def name_validation(cls, v: str) -> str:
+        if v == "":
+            raise ValueError("The name must not be empty")
+        return v
+
+    @classmethod
+    def relative_path_validation(cls, v: str) -> str:
+        value_error_flag = False
+        value_error_msg = ""
+
+        if v == "":
+            value_error_msg += f"The relative path must not be empty. "
+            raise ValueError(value_error_msg)
+
+        v2 = re.sub(r"[^a-zA-Z0-9_\./-]", "", v)
+        if v != v2:
+            value_error_flag = True
+            value_error_msg += f"The relative path must contain only alphanumeric characters, underscores, slashes, and dots. Other characters are not allowed. "
+
+        ext = os.path.splitext(v)[1].replace(".", "")
+        if ext == "":
+            value_error_flag = True
+            value_error_msg += f"The relative path provided did not have an extension. Extensions are required to infer the type of the source data. "
+
+        first_char = v[0]
+        if first_char == "/":
+            value_error_flag = True
+            value_error_msg += f"The relative path provided must not start with a slash. "
+
+        if value_error_flag:
+            value_error_msg += f"\nThe relative path provided was: '{v}'"
+            raise ValueError(value_error_msg)
+
+        return v
+
+    @classmethod
+    def protocol_validation(cls, v: str) -> ProtocolEnum:
+        all_protocols = [e for e in ProtocolEnum]
+        all_protocols_str = [p.value for p in all_protocols]
+        implemented_protocols = [ProtocolEnum.S3]
+        implemented_protocols_str = [p.value for p in implemented_protocols]
+
+        try:
+            enum = ProtocolEnum(v)
+        except ValueError:
+            raise ValueError(
+                f"'{v}' is not a valid protocol. Valid protocols are:\n{all_protocols_str}\nImplemented protocols are:\n{implemented_protocols_str}"
+            )
+
+        if enum not in implemented_protocols:
+            raise ValueError(
+                f"The protocol '{v}' is not implemented. Please use one of the following: {implemented_protocols_str}"
+            )
+
+        return ProtocolEnum(v)
+
+    @classmethod
+    def populate_type(cls, v: str) -> str:
+        basename = os.path.basename(v)
+        ext_dot = os.path.splitext(basename)[1]
+        ext = ext_dot.replace(".", "")
+        return ext
+
+    @field_validator("name")
+    def name_must_not_be_empty(cls, v: str) -> str:
+        return cls.name_validation(v)
+
+    @field_validator("relative_path")
+    def relative_path_must_be_correctly_formatted(cls, v: str) -> str:
+        return cls.relative_path_validation(v)
+
+    @field_validator("protocol")
+    def protocol_must_be_supported(cls, v: ProtocolEnum) -> ProtocolEnum:
+        return cls.protocol_validation(v.value)
+
+    @model_validator(mode="before")
+    def autofill_type(
+        cls, values: dict[str, int | str | ProtocolEnum | SourceDataStatusEnum]
+    ) -> dict[str, int | str | ProtocolEnum | SourceDataStatusEnum]:
+        if "relative_path" in values:
+            relative_path = values.get("relative_path")
+            if isinstance(relative_path, str):
+                values["type"] = cls.populate_type(relative_path)
+        return values
 
 
-class LLM(BaseSoftDeleteKernelPlancksterModel):
+class Agent(BaseSoftDeleteKernelPlancksterModel):
     """
-    A LLM (Language Learning Model) is a model that can be used to generate a response to a user query, given a vectorized research context
+    Represents an agent that can interact with a client
 
-    @param id: the id of the LLM
-    @param name: the name of the LLM
+    @param id: the id of the agent
+    @param name: the name of the agent
+    @param llm_model: the LLM model used by the agent
+    @param instructions: the instructions for the agent
+    @param capabilities: the capabilities of the agent
     """
 
     id: int
-    llm_name: str
+    name: str
+    llm_model: str
+    instructions: str
+    capabilities: list[str]
 
 
 class ResearchContext(BaseSoftDeleteKernelPlancksterModel):
@@ -228,24 +339,17 @@ class ResearchContext(BaseSoftDeleteKernelPlancksterModel):
     @param id: the id of the research context
     @param title: the title of the research context
     @param description: the description of the research context
+    @param version_hash: the hash of the version of the research context
+    @param versioning_provider: the provider of the versioning system
+    @param report: the report of the research context
     """
 
     id: int
     title: str
     description: str
-
-
-class VectorStore(BaseSoftDeleteKernelPlancksterModel):
-    """
-    Represents a vector store, a vectorization of a research context to be inputted to an LLM
-
-    @param id: the id of the vector store
-    @param name: the name of the vector store
-    @param lfn: the logical file name of the vector store
-    """
-
-    id: int
-    name: str
+    version_hash: str
+    versioning_provider: str
+    report: str
 
 
 class Conversation(BaseSoftDeleteKernelPlancksterModel):
